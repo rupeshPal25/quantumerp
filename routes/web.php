@@ -10,12 +10,20 @@ Route::get('/', function () {
 
 Auth::routes();
 
-Route::get('/employers', [App\Http\Controllers\EmployerController::class, 'index'])->name('home');
+Route::get('/home', [App\Http\Controllers\HomeController::class, 'index'])->name('home');
 
 Route::group(['middleware' => ['auth']], function () {
+    // Employers routes
     Route::get('admin/employers', [EmployerController::class, 'index']);
     Route::post('admin/employers', [EmployerController::class, 'store']);
-    Route::get('admin/employers/{employer}', [EmployerController::class, 'show']);
-    Route::post('admin/employers/{employer}/employees', [EmployeeController::class, 'store']);
-});
+    Route::get('admin/employers/{employer}', [EmployerController::class, 'show'])->name('employers.show');
+    
+    // Employees routes (to add employees to an employer)
+    // Route::post('admin/employers/{employer}/employees', [EmployeeController::class, 'store']);
+    // Route::post('admin/employers/{employer}/employees', [EmployeeController::class, 'addEmployee']);
 
+
+    // Employee routes
+    Route::post('admin/employers/{employer}/employees', [EmployeeController::class, 'addEmployee']);
+
+});

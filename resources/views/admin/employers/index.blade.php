@@ -1,50 +1,91 @@
-@extends('layouts.app') 
+@extends('layouts.app')
 @section('content')
-<table>
+
+
+<!-- Button to Open the Modal -->
+<div class="d-flex justify-content-end">
+    <button type="button" class="btn btn-success" data-toggle="modal" data-target="#addEmployerModal">
+        Add Employer
+    </button>
+</div>
+<!-- Employer List Table -->
+<h1>Employer List</h1>
+<table class="table">
     <thead>
         <tr>
             <th>Name</th>
             <th>Email</th>
-            <th>Company</th>
+            <th>Image</th>
             <th>Actions</th>
         </tr>
     </thead>
     <tbody id="employer-list">
         @foreach($employers as $employer)
-            <tr>
-                <td>{{ $employer->name }}</td>
-                <td>{{ $employer->email }}</td>
-                <td>{{ $employer->company }}</td>
-                <td><a href="{{ url('admin/employers/'.$employer->id) }}">View Details</a></td>
-            </tr>
+        <tr>
+            <td>{{ $employer->name }}</td>
+            <td>{{ $employer->email }}</td>
+            <td><img src="{{ asset('images/' . $employer->image) }}" alt="{{ $employer->name }}" width="50"></td>
+            <td>
+            <a href="{{ route('employers.show', $employer->id) }}">View Details</a>
+            </td>
+        </tr>
         @endforeach
     </tbody>
 </table>
 
-<!-- Add Employer Form -->
-<form id="employer-form">
-    @csrf
-    <input type="text" name="name" placeholder="Employer Name" required>
-    <input type="email" name="email" placeholder="Employer Email" required>
-    <input type="text" name="company" placeholder="Company" required>
-    <button type="submit">Add Employer</button>
-</form>
+<!-- Add Employer Modal -->
+<div class="modal fade" id="addEmployerModal" tabindex="-1" role="dialog" aria-labelledby="addEmployerModalLabel" aria-hidden="true">
+    <div class="modal-dialog" role="document">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="addEmployerModalLabel">Add Employer</h5>
+                <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                    <span aria-hidden="true">&times;</span>
+                </button>
+            </div>
+            <div class="modal-body">
+                <form id="employer-form" enctype="multipart/form-data">
+                    @csrf
+                    <div class="form-group">
+                        <label for="name">Employer Name</label>
+                        <input type="text" name="name" class="form-control" placeholder="Employer Name" required>
+                    </div>
+                    <div class="form-group">
+                        <label for="email">Employer Email</label>
+                        <input type="email" name="email" class="form-control" placeholder="Employer Email" required>
+                    </div>
+                    <div class="form-group">
+                        <label for="image">Employer Image</label>
+                        <input type="file" name="image" class="form-control" accept="image/*" required>
+                    </div>
+
+                    <button type="submit" class="btn btn-primary mt-3">Add Employer</button>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+
+
 @endsection
+
 @push('script')
+
 <script>
-$(document).ready(function() {
-    // Bind the form submission event
+    $(document).ready(function() {
     $('#employer-form').on('submit', function(e) {
-        console.log('Form submitted'); 
         e.preventDefault();
 
-        // Make the AJAX request
+        var formData = new FormData(this);
+
         $.ajax({
             type: 'POST',
-            url: '{{ url('admin/employers') }}', // Use the URL correctly
-            data: $(this).serialize(), // Serialize the form data
+            url: '{{ url('admin/employers') }}',
+            data: formData,
+            processData: false,
+            contentType: false,
             headers: {
-                'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content') // Add CSRF token to headers
+                'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content')
             },
             success: function(response) {
                 // Append the new employer to the list
@@ -52,17 +93,21 @@ $(document).ready(function() {
                     <tr>
                         <td>${response.name}</td>
                         <td>${response.email}</td>
-                        <td>${response.company}</td>
-                        <td><a href="/admin/employers/${response.id}">View Details</a></td>
+                        <td><img src="/images/${response.image}" alt="${response.name}" width="50"></td>
+                        <td><a href="/admin/employers/${response.id}" class="btn btn-primary btn-sm">View Details</a></td>
                     </tr>
                 `);
+                $('#addEmployerModal').modal('hide');  // Close the modal
+                $('#employer-form')[0].reset();  // Reset the form fields
             },
             error: function(xhr) {
-                // Handle the error
                 console.log(xhr.responseText);
             }
         });
     });
 });
+
+       
 </script>
-@endpush    
+
+@endpush
